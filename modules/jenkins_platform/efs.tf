@@ -48,7 +48,6 @@ resource "aws_efs_mount_target" this {
   security_groups = [aws_security_group.efs_security_group.id]
 }
 
-/*
 resource "aws_backup_plan" this {
   count = var.efs_enable_backup ? 1 : 0
 
@@ -72,10 +71,16 @@ resource "aws_backup_plan" this {
   tags = var.tags
 }
 
+resource "aws_kms_key" "backup_kms_key" {
+  description = "KMS key used to encrypt Jenkins EFS volume backup"
+  tags        = var.tags
+}
+
 resource "aws_backup_vault" this {
   count = var.efs_enable_backup ? 1 : 0
 
   name = "${var.name_prefix}-vault"
+  kms_key_arn = aws_kms_key.backup_kms_key.arn
   tags = var.tags
 }
 
@@ -90,4 +95,3 @@ resource "aws_backup_selection" this {
     aws_efs_file_system.this.arn
   ]
 }
-*/

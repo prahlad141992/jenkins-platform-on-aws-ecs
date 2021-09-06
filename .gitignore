@@ -23,6 +23,8 @@ crash.log
 **jenkins.yaml
 *.log
 *.zip
+*ecs.txt
+*tf_debug.txt
 
 # Ignore override files as they are usually used to override resources locally and so
 # are not checked in

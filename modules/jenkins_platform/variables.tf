@@ -57,49 +57,49 @@ variable efs_access_point_gid {
   default     = 1000
 }
 
-#variable efs_enable_backup {
- # type    = bool
-  #default = true
-#}
+variable efs_enable_backup {
+  type    = bool
+  default = true
+}
 
-#variable efs_backup_schedule {
- # type    = string
-  #default = "cron(0 00 * * ? *)"
-#}
+variable efs_backup_schedule {
+  type    = string
+  default = "cron(0 00 * * ? *)"
+}
 
-#variable efs_backup_start_window {
- # type        = number
-  #default     = 60
-  #description = <<EOF
-#A value in minutes after a backup is scheduled before a job will be
-#canceled if it doesn't start successfully
-#EOF
-#}
+variable efs_backup_start_window {
+  type        = number
+  default     = 60
+  description = <<EOF
+A value in minutes after a backup is scheduled before a job will be
+canceled if it doesn't start successfully
+EOF
+}
 
-#variable efs_backup_completion_window {
- # type        = number
-  #default     = 120
-  #description = <<EOF
-#A value in minutes after a backup job is successfully started before
-#it must be completed or it will be canceled by AWS Backup
-#EOF
-#}
+variable efs_backup_completion_window {
+  type        = number
+  default     = 120
+  description = <<EOF
+A value in minutes after a backup job is successfully started before
+it must be completed or it will be canceled by AWS Backup
+EOF
+}
 
-#variable efs_backup_cold_storage_after_days {
- # type        = number
-  #default     = 30
-  #description = "Number of days until backup is moved to cold storage"
-#}
+variable efs_backup_cold_storage_after_days {
+  type        = number
+  default     = 30
+  description = "Number of days until backup is moved to cold storage"
+}
 
-#variable efs_backup_delete_after_days {
- # type        = number
-  #default     = 120
-  #description = <<EOF
-#Number of days until backup is deleted. If cold storage transition
-#'efs_backup_cold_storage_after_days' is declared, the delete value must
-#be 90 days greater
-#EOF
-#}
+variable efs_backup_delete_after_days {
+  type        = number
+  default     = 120
+  description = <<EOF
+Number of days until backup is deleted. If cold storage transition
+'efs_backup_cold_storage_after_days' is declared, the delete value must
+be 90 days greater
+EOF
+}
 
 // alb
 variable alb_type_internal {
@@ -195,12 +195,14 @@ variable "volume_size" {
   default     = "30"
 }
 
+/*
 variable "role_name" {
   description = "Amazon EC2 Container Service for EC2 Role"
   type        = string
   #default     = null
   default   = "arn:aws:iam::806483491539:instance-profile/ecsInstanceRole"
 }
+*/
 
 variable "key_name" {
   description = "Name of the SSH keypair to use in AWS."

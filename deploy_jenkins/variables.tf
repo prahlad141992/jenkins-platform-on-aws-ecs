@@ -29,5 +29,5 @@ variable jenkins_controller_subnet_ids {
 variable alb_subnet_ids {
   type        = list(string)
   description = "A list of subnets for the Application Load Balancer"
-   default = ["subnet-5d12c221","subnet-2178df6d","subnet-29452043"]
+   #default = ["subnet-5d12c221","subnet-2178df6d","subnet-29452043"]
 }

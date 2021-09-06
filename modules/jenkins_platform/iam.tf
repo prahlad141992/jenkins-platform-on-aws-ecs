@@ -10,7 +10,6 @@ data "aws_iam_policy_document" efs_resource_policy {
 
     principals {
       type        = "AWS"
-      #identifiers = ["arn:aws:iam::${local.account_id}:root"]
       identifiers = ["*"]
     }
 
@@ -71,7 +70,7 @@ resource "aws_ecr_repository_policy" "jenkins_agent" {
   policy     = data.aws_iam_policy_document.ecr_resource_policy.json
 }
 
-/*
+
 // Backup
 data "aws_iam_policy_document" "aws_backup_assume_policy" {
   count = var.efs_enable_backup ? 1 : 0
@@ -101,7 +100,6 @@ resource "aws_iam_role_policy_attachment" backup_role_policy {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForBackup"
 }
 
-*/
 
 // Jenkins
 data "aws_iam_policy_document" ecs_assume_policy {
@@ -265,6 +263,49 @@ resource "aws_iam_role_policy_attachment" jenkins_controller_task {
   policy_arn = aws_iam_policy.jenkins_controller_task_policy.arn
 }
 
+// ECS Service
+data "aws_iam_policy_document" ecs_service_assume_policy {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ecs.amazonaws.com"]
+    }
+  }
+}
+data "aws_iam_policy_document" ecs_service_policy {
+  statement {
+    effect = "Allow"
+    actions = [
+      "ec2:AuthorizeSecurityGroupIngress",
+      "ec2:Describe*",
+      "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
+      "elasticloadbalancing:DeregisterTargets",
+      "elasticloadbalancing:Describe*",
+      "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
+      "elasticloadbalancing:RegisterTargets"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role" ecs_service_role {
+  name               = "${var.name_prefix}-ecs-service-role"
+  assume_role_policy = data.aws_iam_policy_document.ecs_service_assume_policy.json
+  tags               = var.tags
+}
+
+resource "aws_iam_policy" ecs_service_policy {
+  name   = "${var.name_prefix}-ecs-service-policy"
+  policy = data.aws_iam_policy_document.ecs_service_policy.json
+}
+
+resource "aws_iam_role_policy_attachment" ecs_service {
+  role       = aws_iam_role.ecs_service_role.name
+  policy_arn = aws_iam_policy.ecs_service_policy.arn
+}
 
 //CloudWatch
 data "aws_iam_policy_document" "cloudwatch" {
@@ -300,4 +341,62 @@ data "aws_iam_policy_document" "cloudwatch" {
   }
 }
 
+// ECS Instance
+data "aws_iam_policy_document" "ecs_instance_assume_policy" {
 
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+
+data "aws_iam_policy_document" ecs_instance_policy {
+  statement {
+    effect = "Allow"
+    actions = [
+      "ec2:DescribeTags",
+      "ecs:CreateCluster",
+      "ecs:DeregisterContainerInstance",
+      "ecs:DiscoverPollEndpoint",
+      "ecs:Poll",
+      "ecs:RegisterContainerInstance",
+      "ecs:StartTelemetrySession",
+      "ecs:UpdateContainerInstancesState",
+      "ecs:Submit*",
+      "ecr:GetAuthorizationToken",
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:BatchGetImage",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role" ecs_instance_role {
+  name               = "${var.name_prefix}-ecs-instance-role"
+  assume_role_policy = data.aws_iam_policy_document.ecs_instance_assume_policy.json
+  tags               = var.tags
+}
+
+resource "aws_iam_policy" ecs_instance_policy {
+  name   = "${var.name_prefix}-ecs-instance-policy"
+  policy = data.aws_iam_policy_document.ecs_instance_policy.json
+}
+
+resource "aws_iam_role_policy_attachment" ecs_instance {
+  role       = aws_iam_role.ecs_instance_role.name
+  policy_arn = aws_iam_policy.ecs_instance_policy.arn
+}
+
+resource "aws_iam_instance_profile" "ecs_instance_profile" {
+  name = "${var.name_prefix}-ecs-instance-profile"
+  role = aws_iam_role.ecs_instance_role.name
+}

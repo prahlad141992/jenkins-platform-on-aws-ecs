@@ -31,8 +31,8 @@ data "template_file" jenkins_controller_container_def {
     container_image     = aws_ecr_repository.jenkins_controller.repository_url
     region              = local.region
     account_id          = local.account_id  
-    #log_group           = aws_cloudwatch_log_group.jenkins_controller_log_group.name
-    log_group           = "${var.name_prefix}"
+    log_group           = aws_cloudwatch_log_group.jenkins_controller_log_group.name
+    #log_group           = "${var.name_prefix}"
     memory              = var.jenkins_controller_memory
     cpu                 = var.jenkins_controller_cpu
   }
@@ -41,14 +41,15 @@ data "template_file" jenkins_controller_container_def {
 resource "aws_kms_key" "cloudwatch" {
   description  = "KMS for cloudwatch log group"
   policy  = data.aws_iam_policy_document.cloudwatch.json
+  tags    = var.tags
 }
 
-#resource "aws_cloudwatch_log_group" jenkins_controller_log_group {
- # name              = var.name_prefix
-  #retention_in_days = var.jenkins_controller_task_log_retention_days
-  #kms_key_id        = aws_kms_key.cloudwatch.arn
-  #tags              = var.tags
-#}
+resource "aws_cloudwatch_log_group" jenkins_controller_log_group {
+  name              = var.name_prefix
+  retention_in_days = var.jenkins_controller_task_log_retention_days
+  kms_key_id        = aws_kms_key.cloudwatch.arn
+  tags              = var.tags
+}
 
 resource "aws_ecs_task_definition" jenkins_controller {
   family = var.name_prefix
@@ -88,7 +89,7 @@ resource "aws_ecs_service" jenkins_controller {
   cluster          = aws_ecs_cluster.jenkins_controller.id
   desired_count    = 1
   launch_type      = "EC2"
-  #iam_role         =  "arn:aws:iam::806483491539:role/ecsServiceRole"
+  iam_role         =  "${aws_iam_role.ecs_service_role.arn}"
 
   load_balancer {
     #target_group_arn = aws_elb.elb.arn
@@ -97,8 +98,10 @@ resource "aws_ecs_service" jenkins_controller {
     container_port   = var.jenkins_controller_port
   }
 
+  # To prevent a race condition during service deletion, make sure to set depends_on to the related aws_iam_policy; 
+  # otherwise, the policy may be destroyed too soon and the ECS service will then get stuck in the DRAINING state.
   #depends_on = [aws_lb_listener.https]
-  depends_on = [aws_ecs_cluster.jenkins_controller,aws_ecs_task_definition.jenkins_controller]
+  depends_on = [aws_ecs_cluster.jenkins_controller,aws_ecs_task_definition.jenkins_controller,aws_iam_policy.ecs_service_policy]
   
   enable_ecs_managed_tags = true
   propagate_tags = "TASK_DEFINITION"

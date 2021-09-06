@@ -1,5 +1,7 @@
 # launch templates
 #For now we only use the AWS ECS optimized ami <https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html>
+# Lookup the correct AMI based on the region specified
+# aws ec2 describe-images --region us-east-1 --image-ids ami-xxxxxx
 data "aws_ami" "amazon_linux_ecs" {
   most_recent = true
 
@@ -58,8 +60,8 @@ resource "aws_launch_template" "launch_template" {
 
     name                        = "${var.name_prefix}-ECSInstanceLT-${random_id.fakeuuid.hex}"
     description                 = "${var.name_prefix} launch template"
-    #image_id                   =  data.aws_ami.amazon_linux_ecs.id
-    image_id                    = "ami-01453e60fc2aef31b"
+    image_id                   =  data.aws_ami.amazon_linux_ecs.id
+    #image_id                    = "ami-01453e60fc2aef31b"
     instance_type               = "${var.instance_type}"
     key_name                    = "${var.key_name}"
     #ebs_optimized               = true
@@ -69,7 +71,8 @@ resource "aws_launch_template" "launch_template" {
     }
 
     iam_instance_profile {
-        arn      = "${var.role_name}"
+        #arn      = "${var.role_name}"
+        arn       = "${aws_iam_instance_profile.ecs_instance_profile.arn}"
     } 
 
     block_device_mappings {

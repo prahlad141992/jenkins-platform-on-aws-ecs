@@ -13,3 +13,5 @@ export TF_VAR_vpc_id="vpc-030210a94e6675ff6"
 export TF_VAR_efs_subnet_ids=${PRIVATE_SUBNETS}
 export TF_VAR_jenkins_controller_subnet_ids=${PRIVATE_SUBNETS}
 export TF_VAR_alb_subnet_ids=${PUBLIC_SUBNETS}
+export TF_LOG=DEBUG
+export TF_LOG_PATH=tf_debug.txt

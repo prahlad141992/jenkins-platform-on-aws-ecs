@@ -25,6 +25,7 @@ locals {
 #// An example of creating a KMS key
 resource "aws_kms_key" "efs_kms_key" {
   description = "KMS key used to encrypt Jenkins EFS volume"
+  tags = local.tags
 }
 
 module "serverless_jenkins" {
@@ -38,6 +39,8 @@ module "serverless_jenkins" {
   alb_subnet_ids                  = var.alb_subnet_ids
   alb_ingress_allow_cidrs         = ["0.0.0.0/0"]
   alb_acm_certificate_arn         = "arn:aws:acm:us-east-1:806483491539:certificate/a434e826-52e1-4793-a400-9394fa44c577"
+  // Launch Template instance key-pair
+  key_name                        = "ECS-key"
   // tags parameters
   environment                     = local.env
   product                         = local.product
